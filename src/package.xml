@@ -2,7 +2,7 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
 	<types>
 		<members>Trigger_FeedItem</members>
-		<members>TEST_ChatterPUBAutoTopicTagging</members>
+		<members>TEST_ChatterAutoTopicTagging</members>
 		<name>ApexClass</name>
 	</types>
 	<types>
