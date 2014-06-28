@@ -1,4 +1,4 @@
-@isTest
+@IsTest(SeeAllData=true)
 public class TEST_ChatterAutoTopicTagging {
     
     static testMethod void singleTopic() {
@@ -8,6 +8,8 @@ public class TEST_ChatterAutoTopicTagging {
 
         // Get some random User in the foundation org
         User u = [SELECT Id, Name FROM User WHERE Profile.name = 'System Administrator' and isActive = true LIMIT 1];
+
+        delete [SELECT Id from Chatter_Category__c];
 
         //Create a Chatter Group
         CollaborationGroup chatterGroup = new CollaborationGroup(
@@ -61,6 +63,8 @@ public class TEST_ChatterAutoTopicTagging {
 
         // Get some random User in the foundation org
         User u = [SELECT Id, Name FROM User WHERE Profile.name = 'System Administrator' and isActive = true LIMIT 1];
+
+        delete [SELECT Id from Chatter_Category__c];
 
         //Create a Chatter Group
         CollaborationGroup chatterGroup = new CollaborationGroup(
@@ -153,6 +157,8 @@ public class TEST_ChatterAutoTopicTagging {
         // Get some random User in the foundation org
         User u = [SELECT Id, Name FROM User WHERE Profile.name = 'System Administrator' and isActive = true LIMIT 1];
 
+        delete [SELECT Id from Chatter_Category__c];
+
         //Create a Chatter Group
         CollaborationGroup chatterGroup = new CollaborationGroup(
             Name = 'Navel Gazing',
@@ -187,6 +193,58 @@ public class TEST_ChatterAutoTopicTagging {
         List<FeedItem> items = [SELECT body FROM FeedItem WHERE id = :post.id];
         system.assert(items[0].body.containsOnly('I think I have a lint problem'));
         system.debug('POST BODY: ' + items[0].body);
+
+        Test.StopTest();
+    }
+
+    static testMethod void postToAccount() {
+// Get some admin User in the foundation org
+        User admin = [SELECT Id, Name FROM User WHERE Profile.name = 'System Administrator' and isActive = true LIMIT 1];
+
+        // Get some random User in the foundation org
+        User u = [SELECT Id, Name FROM User WHERE Profile.name = 'System Administrator' and isActive = true LIMIT 1];
+
+        delete [SELECT Id from Chatter_Category__c];
+
+        //Create a Chatter Group
+        CollaborationGroup chatterGroup = new CollaborationGroup(
+            Name = 'Account Stuff',
+            OwnerId = admin.id,
+            CollaborationType = 'Public',
+            CanHaveGuests = false
+            );
+        insert chatterGroup;
+
+        Chatter_Category__c category = new Chatter_Category__c(
+            Name = 'Account posts',
+            Parent_Id__c = '001',
+            Topics__c = 'Navel Gazing;Mission and Vision',
+            Chatter_Group_Id__c = chatterGroup.Id
+            );
+        insert category;
+
+        Account account = new Account(
+            Name='Junk account'
+            );
+        insert account;
+
+        FeedItem post;
+        system.runAs(u) {
+            post = new FeedItem(
+                ParentId = account.id,
+                Type = 'TextPost',
+                Body = 'I think I have a lint problem'
+                );
+
+            Test.StartTest();
+
+            // on insert we should get a FeedItem with hashtags appended
+            insert post;
+        }
+        //get feedpost and look for comment
+        FeedItem createdFeedItem = [SELECT CommentCount FROM FeedItem WHERE Id = :post.id];
+
+        system.assertEquals(1,createdFeedItem.CommentCount);
 
         Test.StopTest();
     }
