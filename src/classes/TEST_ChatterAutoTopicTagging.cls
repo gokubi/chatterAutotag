@@ -222,6 +222,11 @@ public class TEST_ChatterAutoTopicTagging {
             Chatter_Group_Id__c = chatterGroup.Id
             );
         insert category;
+        
+        Topic hubTopic = new Topic(
+            Name = 'Navel Gazing'
+            );
+        insert hubTopic;
 
         Account account = new Account(
             Name='Junk account'
@@ -245,6 +250,12 @@ public class TEST_ChatterAutoTopicTagging {
         FeedItem createdFeedItem = [SELECT CommentCount FROM FeedItem WHERE Id = :post.id];
 
         system.assertEquals(1,createdFeedItem.CommentCount);
+
+        List<TopicAssignment> assignedTopics = [SELECT id, Topic.Name FROM TopicAssignment 
+                                                WHERE EntityId = :post.id
+                                                AND TopicId = :hubTopic.id];
+        system.assertEquals(1,assignedTopics.size());
+        system.assert(assignedTopics[0].Topic.Name == 'Navel Gazing',assignedTopics[0].Topic.Name);
 
         Test.StopTest();
     }
