@@ -12,7 +12,7 @@ public without sharing class Trigger_FeedItem {
     public void chatterAutoTopicTagging(List<FeedItem> itemsFromTrigger) {
 
         //map for the topics for a certain parent id
-        Map<id,string> parentTopicMap = new Map<id,string>();
+        Map<string,string> parentTopicMap = new Map<string,string>();
         //map for grooup id for a certain object prefix
         Map<string,id> parentTypeGroupMap = new Map<string,id>();
 
@@ -31,19 +31,22 @@ public without sharing class Trigger_FeedItem {
                 existingTopicMap.put(t.Name,t.Id);
             }
 
-            for (Chatter_Category__c c : allCategories) { 
-                if(c.Parent_Id__c.left(3)=='0F9'){
-                    parentTopicMap.put(c.Parent_Id__c,c.Topics__c);  
-                } else {
+            for (Chatter_Category__c c : allCategories) {                 
+                parentTopicMap.put(c.Parent_Id__c,c.Topics__c);  
+                if(c.Parent_Id__c.left(3)!='0F9'){
                     parentTypeGroupMap.put(c.Parent_Id__c,c.Chatter_Group_Id__c);
                 }
-                 
             }
             
             List<TopicAssignment> assignmentsToCreate = new List<TopicAssignment>();
 
             for (FeedItem item : itemsFromTrigger) {
-                string topicString = parentTopicMap.get(item.ParentId);
+                string topicString;
+                if(((string)(item.ParentId)).left(3)=='0F9'){
+                    topicString = parentTopicMap.get(item.ParentId);
+                } else {
+                    topicString = parentTopicMap.get(((string)(item.ParentId)).left(3)); 
+                }
                 if (topicString != null) {
                     for (string s : topicString.split(';')) {
                         if (existingTopicMap.get(s) != null) {

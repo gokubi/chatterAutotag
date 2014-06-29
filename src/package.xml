@@ -17,5 +17,9 @@
         <members>Chatter_Category__c</members>
         <name>CustomTab</name>
     </types>
+    <types>
+        <members>Chatter_Category__c-Chatter Category Layout</members>
+        <name>Layout</name>
+    </types>
     <version>28.0</version>
 </Package>
