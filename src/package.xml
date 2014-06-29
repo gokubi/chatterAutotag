@@ -13,5 +13,9 @@
         <members>Chatter_Category__c</members>
         <name>CustomObject</name>
     </types>
+    <types>
+        <members>Chatter_Category__c</members>
+        <name>CustomTab</name>
+    </types>
     <version>28.0</version>
 </Package>
