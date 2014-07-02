@@ -11,6 +11,8 @@ public without sharing class Trigger_FeedItem {
     
     public void chatterAutoTopicTagging(List<FeedItem> itemsFromTrigger) {
 
+        //name for group that you want to @mention
+        String groupName = 'Competitive Analysis';
         //map for the topics for a certain parent id
         Map<string,string> parentTopicMap = new Map<string,string>();
         //map for grooup id for a certain object prefix
@@ -20,7 +22,18 @@ public without sharing class Trigger_FeedItem {
                                                 FROM Chatter_Category__c
                                                 WHERE Parent_Id__c <> null];
 
-        //now build the map of chatter group id to topics
+        Set<id> chatterGroupIds = new Set<id>();
+
+        //create a set of group ids for getting group names, since the group field on Chatter_Category__c is a string field, not a lookup
+        for (Chatter_Category__c thisCat : allCategories){
+            if (thisCat.Chatter_Group_Id__c!=null){
+                chatterGroupIds.add(thisCat.Chatter_Group_Id__c);
+            }
+         
+        }
+        //all relevant chatter groups
+        Map<ID, CollaborationGroup> allChatterGroups = new Map<ID, CollaborationGroup>([SELECT id, Name FROM CollaborationGroup WHERE ID IN :chatterGroupIds]);
+
         if (!allCategories.isEmpty()) {  
             
             Map<string,id> existingTopicMap = new Map<string,id>();
@@ -58,19 +71,9 @@ public without sharing class Trigger_FeedItem {
                         }
                     }
                 }
-            }
-
-            try {
-                if (!assignmentsToCreate.isEmpty()) insert assignmentsToCreate;
-            } catch (Exception e) {
-              
-            }
-            
-        }
-        for (FeedItem item : itemsFromTrigger) {
-            if(((string)(item.ParentId)).left(3)!='0F9' && ((string)(item.ParentId)).left(3)!=null){
                 Id chatterGroupId = parentTypeGroupMap.get(((string)(item.ParentId)).left(3));
-                if(chatterGroupId!=null){
+                //only comment when it's not a group post and there isn't the correct @mention already
+                if(((string)(item.ParentId)).left(3)!='0F9' && ((string)(item.ParentId)).left(3)!=null && !item.Body.contains('@' + allChatterGroups.get(chatterGroupId).Name) && chatterGroupId!=null){
                     ConnectApi.CommentInput commentInput = new ConnectApi.CommentInput();
                     ConnectApi.MentionSegmentInput mentionSegmentInput = new ConnectApi.MentionSegmentInput();
                     ConnectApi.MessageBodyInput messageBodyInput = new ConnectApi.MessageBodyInput();
@@ -86,6 +89,12 @@ public without sharing class Trigger_FeedItem {
                     ConnectApi.Comment commentRep = ConnectApi.ChatterFeeds.postComment(null, item.id, commentInput, null);
                 }
             }
-        }    
+
+            try {
+                if (!assignmentsToCreate.isEmpty()) insert assignmentsToCreate;
+            } catch (Exception e) {
+              
+            }   
+        }
     }
 }

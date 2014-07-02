@@ -198,7 +198,7 @@ public class TEST_ChatterAutoTopicTagging {
     }
 
     static testMethod void postToAccount() {
-// Get some admin User in the foundation org
+        // Get some admin User in the foundation org
         User admin = [SELECT Id, Name FROM User WHERE Profile.name = 'System Administrator' and isActive = true LIMIT 1];
 
         // Get some random User in the foundation org
